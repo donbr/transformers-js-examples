@@ -92,6 +92,9 @@ export default defineConfig({
   optimizeDeps: {
     exclude: ['@huggingface/transformers'],
   },
+  build: {
+    target: 'es2022', // Allow top-level await in workers
+  }
 });
 EOF
 
