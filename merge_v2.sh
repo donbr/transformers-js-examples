@@ -8,7 +8,7 @@
 # React application with shared navigation and consistent UI.
 #
 # Usage:
-#   ./merge.sh [output_dir]
+#   ./merge_v2.sh [output_dir]
 #
 # Parameters:
 #   output_dir - Optional target directory name (default: transformers-unified)
@@ -18,7 +18,9 @@
 #   - Individual example directories in the current folder
 #   - Standard Unix commands (cp, mkdir, find, sed, etc.)
 #
-# Author: Original developer
+# Author: dwb2023 (Hugging Face) / donbr (GitHub)
+#
+# Kudos to the original authors of https://github.com/huggingface/transformers.js-examples
 # =================================================================
 
 set -e # Exit immediately if any command fails
