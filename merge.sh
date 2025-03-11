@@ -4,7 +4,7 @@
 set -e # Exit on error
 
 PROJECT_NAME="transformers-unified"
-SOURCE_DIR="./transformers.js-examples"
+SOURCE_DIR="."
 TARGET_DIR="./${PROJECT_NAME}"
 
 # Create target directory
@@ -163,7 +163,6 @@ const LlamaDemo = React.lazy(() => import('./demos/llama/App'));
 const PhiDemo = React.lazy(() => import('./demos/phi/App'));
 const JanusDemo = React.lazy(() => import('./demos/janus/App'));
 const FlorenceDemo = React.lazy(() => import('./demos/florence/App'));
-const DepthAnythingDemo = React.lazy(() => import('./demos/depth-anything/App'));
 const CrossEncoderDemo = React.lazy(() => import('./demos/cross-encoder/App'));
 const ZeroShotDemo = React.lazy(() => import('./demos/zero-shot/App'));
 const SpeechT5Demo = React.lazy(() => import('./demos/speecht5/App'));
@@ -188,7 +187,6 @@ function App() {
             <Route path="/phi" element={<PhiDemo />} />
             <Route path="/janus" element={<JanusDemo />} />
             <Route path="/florence" element={<FlorenceDemo />} />
-            <Route path="/depth-anything" element={<DepthAnythingDemo />} />
             <Route path="/cross-encoder" element={<CrossEncoderDemo />} />
             <Route path="/zero-shot" element={<ZeroShotDemo />} />
             <Route path="/speecht5" element={<SpeechT5Demo />} />
@@ -370,17 +368,18 @@ copy_example() {
   cp -r ${SOURCE_DIR}/${EXAMPLE_NAME}/src/* ${TARGET_DIR}/src/demos/${DEST_NAME}/
   
   # Fix imports
-  find ${TARGET_DIR}/src/demos/${DEST_NAME} -type f -name "*.js" -o -name "*.jsx" -exec sed -i 's,from "./,from ".\/,g' {} \;
-  find ${TARGET_DIR}/src/demos/${DEST_NAME} -type f -name "*.js" -o -name "*.jsx" -exec sed -i 's,from "../,from "..\/,g' {} \;
+  find ${TARGET_DIR}/src/demos/${DEST_NAME} -type f \( -name "*.js" -o -name "*.jsx" \) -exec sed -i 's,from "./,from ".\/,g' {} \;
+  find ${TARGET_DIR}/src/demos/${DEST_NAME} -type f \( -name "*.js" -o -name "*.jsx" \) -exec sed -i 's,from "../,from "..\/,g' {} \;
   
-  # Fix logo and asset paths
-  find ${TARGET_DIR}/src/demos/${DEST_NAME} -type f -name "*.js" -o -name "*.jsx" | xargs grep -l "logo" | xargs sed -i 's,/logo,/demos/'${DEST_NAME}'/logo,g'
-  find ${TARGET_DIR}/src/demos/${DEST_NAME} -type f -name "*.js" -o -name "*.jsx" | xargs grep -l "assets" | xargs sed -i 's,/assets,/demos/'${DEST_NAME}'/assets,g'
+  # Fix logo and asset paths - make these resilient to no matches
+  LOGO_FILES=$(find ${TARGET_DIR}/src/demos/${DEST_NAME} -type f \( -name "*.js" -o -name "*.jsx" \) | xargs grep -l "logo" 2>/dev/null || echo "")
+  if [ -n "$LOGO_FILES" ]; then
+    echo "$LOGO_FILES" | xargs sed -i 's,/logo,/demos/'${DEST_NAME}'/logo,g'
+  fi
   
-  # Copy public files if they exist
-  if [ -d "${SOURCE_DIR}/${EXAMPLE_NAME}/public" ]; then
-    mkdir -p ${TARGET_DIR}/public/demos/${DEST_NAME}
-    cp -r ${SOURCE_DIR}/${EXAMPLE_NAME}/public/* ${TARGET_DIR}/public/demos/${DEST_NAME}/
+  ASSET_FILES=$(find ${TARGET_DIR}/src/demos/${DEST_NAME} -type f \( -name "*.js" -o -name "*.jsx" \) | xargs grep -l "assets" 2>/dev/null || echo "")
+  if [ -n "$ASSET_FILES" ]; then
+    echo "$ASSET_FILES" | xargs sed -i 's,/assets,/demos/'${DEST_NAME}'/assets,g'
   fi
 }
 
@@ -389,7 +388,6 @@ copy_example "llama-3.2-webgpu" "llama"
 copy_example "phi-3.5-webgpu" "phi"
 copy_example "janus-webgpu" "janus"
 copy_example "florence2-webgpu" "florence"
-copy_example "depth-anything" "depth-anything"
 copy_example "cross-encoder" "cross-encoder"
 copy_example "zero-shot-classification" "zero-shot"
 copy_example "speecht5-web" "speecht5"

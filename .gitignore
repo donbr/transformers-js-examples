@@ -1,0 +1,3 @@
+# add typical entries for node.js projects
+node_modules
+npm-debug.log
