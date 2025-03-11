@@ -8,6 +8,7 @@ dist
 # add transformers-js-demos and transformers-unified directories
 transformers-js-demos
 transformers-unified
+transformersjs-examples
 
 # add .env file
 .env

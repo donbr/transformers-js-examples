@@ -90,9 +90,6 @@ export default defineConfig({
   worker: {
     format: 'es',
   },
-  optimizeDeps: {
-    exclude: ['@huggingface/transformers'],
-  },
   build: {
     target: 'es2022', // Allow top-level await in workers
   }
@@ -153,10 +150,10 @@ cat > ${TARGET_DIR}/index.html << 'EOF'
 EOF
 
 # Create static-app.json for SPA routing (needed for HF Spaces)
-echo "Creating static-app.json for SPA routing..."
-cat > ${TARGET_DIR}/static-app.json << 'EOF'
-{"route": "/*", "to": "/index.html", "status": 200}
-EOF
+# echo "Creating static-app.json for SPA routing..."
+# cat > ${TARGET_DIR}/static-app.json << 'EOF'
+# {"route": "/*", "to": "/index.html", "status": 200}
+# EOF
 
 # Create main entry point
 cat > ${TARGET_DIR}/src/main.jsx << 'EOF'
