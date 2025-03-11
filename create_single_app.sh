@@ -1,13 +1,38 @@
 #!/bin/bash
-# Script to create a unified transformers.js examples showcase
+# =================================================================
+# Transformers.js Examples Unifier
+# =================================================================
+#
+# This script creates a unified showcase application that combines
+# multiple standalone Transformers.js example apps into a single
+# React application with shared navigation and consistent UI.
+#
+# Usage:
+#   ./create_single_app.sh [output_dir]
+#
+# Parameters:
+#   output_dir - Optional target directory name (default: transformers-unified)
+#
+# Requirements:
+#   - Bash shell environment
+#   - Individual example directories in the current folder
+#   - Standard Unix commands (cp, mkdir, find, sed, etc.)
+#
+# Author: dwb2023 (Hugging Face) / donbr (GitHub)
+#
+# Kudos to the original authors of https://github.com/huggingface/transformers.js-examples
+# =================================================================
 
-set -e # Exit on error
+set -e # Exit immediately if any command fails
 
-PROJECT_NAME="transformers-unified"
+# Configuration
+PROJECT_NAME="${1:-transformers-unified}"  # Use first argument or default
 SOURCE_DIR="."
 TARGET_DIR="./${PROJECT_NAME}"
 
-# Create target directory
+# =================================================================
+# 1. Project Setup
+# =================================================================
 echo "Creating project: ${PROJECT_NAME}"
 mkdir -p ${TARGET_DIR}
 mkdir -p ${TARGET_DIR}/src
@@ -34,7 +59,8 @@ cat > ${TARGET_DIR}/package.json << 'EOF'
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.22.3",
-    "motion": "^11.12.0"
+    "motion": "^11.12.0",
+    "outetts": "github:xenova/OuteTTS"
   },
   "devDependencies": {
     "@eslint/js": "^9.17.0",
@@ -67,6 +93,9 @@ export default defineConfig({
   optimizeDeps: {
     exclude: ['@huggingface/transformers'],
   },
+  build: {
+    target: 'es2022', // Allow top-level await in workers
+  }
 });
 EOF
 
@@ -95,7 +124,9 @@ export default {
 }
 EOF
 
-# Setup common entry files
+# =================================================================
+# 2. Project Common Files
+# =================================================================
 echo "Setting up common files..."
 cat > ${TARGET_DIR}/index.html << 'EOF'
 <!DOCTYPE html>
@@ -105,12 +136,26 @@ cat > ${TARGET_DIR}/index.html << 'EOF'
     <link rel="icon" type="image/svg+xml" href="/logo.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Transformers.js Examples</title>
+    <!-- Add MathJax configuration -->
+    <script>
+      window.MathJax = {
+        tex: { inlineMath: [["$", "$"], ["\\(", "\\)"]] },
+        svg: { fontCache: "global" }
+      };
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
+EOF
+
+# Create static-app.json for SPA routing (needed for HF Spaces)
+echo "Creating static-app.json for SPA routing..."
+cat > ${TARGET_DIR}/static-app.json << 'EOF'
+{"route": "/*", "to": "/index.html", "status": 200}
 EOF
 
 # Create main entry point
@@ -201,9 +246,9 @@ function App() {
 export default App;
 EOF
 
-# Create HomePage with links to all demos
+# Create HomePage component
 cat > ${TARGET_DIR}/src/HomePage.jsx << 'EOF'
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 
 const demoList = [
@@ -234,13 +279,6 @@ const demoList = [
     description: 'Vision model for image understanding and captioning',
     category: 'vision',
     requiresWebGPU: true
-  },
-  {
-    id: 'depth-anything',
-    name: 'Depth Anything',
-    description: 'Depth estimation from regular images',
-    category: 'vision',
-    requiresWebGPU: false
   },
   {
     id: 'cross-encoder',
@@ -348,16 +386,16 @@ function HomePage() {
 export default HomePage;
 EOF
 
+# =================================================================
+# 3. Demo Integration
+# =================================================================
 # Setup demo dirs
 mkdir -p ${TARGET_DIR}/src/demos
 
-# Copy each example to its own directory in the demos folder
-echo "Copying example apps..."
-
-# Function to copy an example
+# Function to copy and adapt an example to the unified structure
 copy_example() {
-  EXAMPLE_NAME=$1
-  DEST_NAME=$2
+  local EXAMPLE_NAME=$1
+  local DEST_NAME=$2
   
   echo "Copying ${EXAMPLE_NAME} to demos/${DEST_NAME}..."
 
@@ -367,9 +405,11 @@ copy_example() {
   # Copy source files
   cp -r ${SOURCE_DIR}/${EXAMPLE_NAME}/src/* ${TARGET_DIR}/src/demos/${DEST_NAME}/
   
-  # Fix imports
-  find ${TARGET_DIR}/src/demos/${DEST_NAME} -type f \( -name "*.js" -o -name "*.jsx" \) -exec sed -i 's,from "./,from ".\/,g' {} \;
-  find ${TARGET_DIR}/src/demos/${DEST_NAME} -type f \( -name "*.js" -o -name "*.jsx" \) -exec sed -i 's,from "../,from "..\/,g' {} \;
+  # Fix relative imports
+  find ${TARGET_DIR}/src/demos/${DEST_NAME} -type f \( -name "*.js" -o -name "*.jsx" \) \
+    -exec sed -i 's,from "./,from ".\/,g' {} \;
+  find ${TARGET_DIR}/src/demos/${DEST_NAME} -type f \( -name "*.js" -o -name "*.jsx" \) \
+    -exec sed -i 's,from "../,from "..\/,g' {} \;
   
   # Fix logo and asset paths - make these resilient to no matches
   LOGO_FILES=$(find ${TARGET_DIR}/src/demos/${DEST_NAME} -type f \( -name "*.js" -o -name "*.jsx" \) | xargs grep -l "logo" 2>/dev/null || echo "")
@@ -383,7 +423,10 @@ copy_example() {
   fi
 }
 
-# Copy each example
+# =================================================================
+# 4. Copy Individual Examples
+# =================================================================
+echo "Copying example apps..."
 copy_example "llama-3.2-webgpu" "llama"
 copy_example "phi-3.5-webgpu" "phi"
 copy_example "janus-webgpu" "janus"
@@ -393,6 +436,9 @@ copy_example "zero-shot-classification" "zero-shot"
 copy_example "speecht5-web" "speecht5"
 copy_example "text-to-speech-webgpu" "tts"
 
+# =================================================================
+# 5. Completion
+# =================================================================
 echo "Done! Project created at ${TARGET_DIR}"
 echo "To start the app, run:"
 echo "  cd ${TARGET_DIR}"

@@ -4,3 +4,10 @@ npm-debug.log
 
 # add dist directory
 dist
+
+# add transformers-js-demos and transformers-unified directories
+transformers-js-demos
+transformers-unified
+
+# add .env file
+.env
