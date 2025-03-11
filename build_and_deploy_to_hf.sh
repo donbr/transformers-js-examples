@@ -50,6 +50,15 @@ cd transformers-js-demos
 
 cp -r ../transformers-unified/dist/* .
 
+# 4. Add SPA routing support for HF Spaces
+# This creates a configuration file that tells Hugging Face Spaces to redirect all routes
+# to index.html, allowing React Router to handle client-side routing properly
+echo '{"route": "/*", "to": "/index.html", "status": 200}' > static-app.json
+
+# 5. Commit and deploy to Hugging Face Spaces
+# Once pushed, Hugging Face Spaces will automatically detect the static files
+# and serve them using their Static Spaces SDK. The deployment process typically
+# takes 1-2 minutes to complete, after which the changes will be live.
 git add .
 git commit -m "Update with latest build"
 git push
