@@ -98,6 +98,26 @@ Each individual model example follows a similar structure:
 - **Model Loading**: Web Workers for non-blocking UI
 - **Acceleration**: WebGPU for supported models and browsers
 
+## 🔧 Technical Details
+
+- **Framework**: React with Vite
+- **Styling**: Tailwind CSS
+- **Routing**: React Router with SPA routing
+- **Model Loading**: Web Workers for non-blocking UI
+- **Acceleration**: WebGPU for supported models and browsers
+
+### Mobile Compatibility
+
+While the examples work well on desktop browsers with WebGPU support, mobile compatibility is still being investigated. Contributions and observations in this area are particularly welcome.
+
+## 🔍 What's Next?
+
+This repository serves as a starting point for exploring TransformersJS capabilities. Some areas for further exploration:
+
+- Optimizing for mobile devices
+- Investigate alternative loading strategies for hybride online / offline use cases
+- Leveraging tools from the [HF ONNX Community](https://huggingface.co/onnx-community) to convert add models
+
 ## 🙏 Credits
 
 - Original examples from [huggingface/transformers.js-examples](https://github.com/huggingface/transformers.js-examples) - worth starring and watching!
